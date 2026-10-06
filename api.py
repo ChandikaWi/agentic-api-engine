@@ -169,6 +169,18 @@ def update_account(
     access_token = create_access_token(data={"sub": current_user.username})
     return {"access_token": access_token, "token_type": "bearer", "username": current_user.username}
 
+@app.delete("/account")
+def delete_account(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # Delete associated jobs first
+    db.query(models.Job).filter(models.Job.user_id == current_user.id).delete()
+    # Delete user
+    db.delete(current_user)
+    db.commit()
+    return {"status": "success", "message": "Account deleted successfully"}
+
 # WebSocket Manager
 class ConnectionManager:
     def __init__(self):

@@ -44,6 +44,15 @@ structured_critic_llm = llm.with_structured_output(CriticOutput)
 embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2")
 
 def get_retriever():
+    chroma_host = os.getenv("CHROMA_SERVER_HOST")
+    if chroma_host:
+        vectorstore = Chroma(
+            host=chroma_host, 
+            port=int(os.getenv("CHROMA_SERVER_PORT", "8000")), 
+            embedding_function=embeddings
+        )
+        return vectorstore.as_retriever(search_kwargs={"k": 4})
+        
     persist_directory = "./chroma_db"
     if os.path.exists(persist_directory):
         vectorstore = Chroma(persist_directory=persist_directory, embedding_function=embeddings)

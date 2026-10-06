@@ -64,10 +64,17 @@ def build_vector_store(urls, persist_directory="./chroma_db"):
     
     embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2")
     
+    vectorstore_kwargs = {"embedding": embeddings}
+    chroma_host = os.getenv("CHROMA_SERVER_HOST")
+    if chroma_host:
+        vectorstore_kwargs["host"] = chroma_host
+        vectorstore_kwargs["port"] = int(os.getenv("CHROMA_SERVER_PORT", "8000"))
+    else:
+        vectorstore_kwargs["persist_directory"] = persist_directory
+
     vectorstore = Chroma.from_texts(
         texts=chunks,
-        embedding=embeddings,
-        persist_directory=persist_directory
+        **vectorstore_kwargs
     )
     
     print(f"Vector store successfully built and saved to {persist_directory}")

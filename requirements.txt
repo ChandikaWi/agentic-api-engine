@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+websockets
+sqlalchemy
+psycopg2-binary
+passlib
+bcrypt
+pyjwt
+langgraph
+langchain
+langchain-google-genai
+langchain-chroma
+pydantic
+beautifulsoup4
+requests
+python-dotenv

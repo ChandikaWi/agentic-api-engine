@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: agent_jobs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d agent_jobs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+  backend:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/agent_jobs
+      - CHROMA_SERVER_HOST=chroma
+      - CHROMA_SERVER_PORT=8000
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-generate_a_secure_random_key_here}
+    depends_on:
+      db:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    volumes:
+      - ./temp_execution:/app/temp_execution # Keep sandbox persistent/isolated if needed
+
+  frontend:
+    build: 
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:8001
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  chroma_data:

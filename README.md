@@ -49,7 +49,7 @@ All of this is presented through a beautiful, glassmorphic React frontend with r
 
 ## ✨ Key Features
 
-<details>
+<details open>
 <summary><b>🤖 Autonomous Multi-Agent System</b></summary>
 <br/>
 
@@ -60,7 +60,7 @@ All of this is presented through a beautiful, glassmorphic React frontend with r
 
 </details>
 
-<details>
+<details open>
 <summary><b>💻 Premium React Dashboard</b></summary>
 <br/>
 
@@ -69,7 +69,7 @@ All of this is presented through a beautiful, glassmorphic React frontend with r
 - **Job History Tracking**: Review and retry historical runs seamlessly.
 </details>
 
-<details>
+<details open>
 <summary><b>👤 Human-in-the-Loop (HITL) Capabilities</b></summary>
 <br/>
 
@@ -77,7 +77,7 @@ All of this is presented through a beautiful, glassmorphic React frontend with r
 - **Dynamic Override**: If the AI hits an undocumented API endpoint, the user can manually pass the `Bearer` token or schema rules directly to the LangGraph node!
 </details>
 
-<details>
+<details open>
 <summary><b>🔒 Secure & Persistent Backend</b></summary>
 <br/>
 
@@ -137,7 +137,22 @@ echo "SECRET_KEY=generate_a_secure_random_key_here" >> .env
 uvicorn api:app --reload --port 8000
 ```
 
-### 3. Frontend Setup
+### 3. Docker Deployment (Recommended)
+
+You can run the entire system (Frontend, Backend, Postgres, and ChromaDB) in scalable containers using Docker Compose.
+
+```bash
+# Ensure you have set GOOGLE_API_KEY and SECRET_KEY in your .env file in the root directory.
+
+# Build and start all containers
+docker-compose up --build -d
+
+# The services will be available at:
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8001
+```
+
+### 4. Frontend Setup (Local Development)
 
 ```bash
 # Open a new terminal window

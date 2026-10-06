@@ -42,6 +42,7 @@ function App() {
   const [accountModal, setAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({ username: '', password: '' });
   const [isAccountUpdating, setIsAccountUpdating] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' });
   const [authForm, setAuthForm] = useState({ username: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -370,6 +371,23 @@ function App() {
       toast.error(err.message);
     } finally {
       setIsAccountUpdating(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await apiFetch('/account', {
+        method: 'DELETE',
+      }, currentUser.token, handleLogout);
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      toast.success('Account deleted successfully');
+      handleLogout();
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
@@ -965,53 +983,84 @@ function App() {
           <div className="modal-content auth-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Account Settings
-              <button className="icon-btn" onClick={() => setAccountModal(false)}><XCircle size={20} /></button>
+              <button className="icon-btn" onClick={() => { setAccountModal(false); setShowDeleteConfirm(false); }}><XCircle size={20} /></button>
             </div>
-            <form onSubmit={handleUpdateAccount}>
-              <div className="modal-body">
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Update your username or password</p>
 
-                <div className="input-group">
-                  <label>New Username (Optional)</label>
-                  <div className="input-with-icon">
-                    <User size={16} className="input-icon" />
-                    <input
-                      type="text"
-                      placeholder={currentUser?.username}
-                      value={accountForm.username}
-                      onChange={(e) => setAccountForm({ ...accountForm, username: e.target.value })}
-                      style={{ paddingLeft: '2.5rem' }}
-                    />
-                  </div>
+            {showDeleteConfirm ? (
+              <div style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: 'var(--node-error)' }}>
+                  <XCircle size={48} />
                 </div>
-
-                <div className="input-group">
-                  <label>New Password (Optional)</label>
-                  <div className="password-input-wrapper input-with-icon">
-                    <Lock size={16} className="input-icon" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter new password"
-                      value={accountForm.password}
-                      onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}
-                      style={{ paddingLeft: '2.5rem' }}
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex="-1"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
+                <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>Delete Account?</h3>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                  This action is completely irreversible. All your integrated API jobs and configuration data will be permanently lost.
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                  <button type="button" className="secondary-btn" onClick={() => setShowDeleteConfirm(false)} style={{ margin: 0, flex: 1 }}>
+                    Cancel
+                  </button>
+                  <button type="button" className="primary-btn" onClick={handleDeleteAccount} style={{ margin: 0, flex: 1, backgroundColor: 'var(--node-error)' }}>
+                    Yes, Delete
+                  </button>
                 </div>
               </div>
+            ) : (
+              <form onSubmit={handleUpdateAccount}>
+                <div className="modal-body">
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Update your username or password</p>
 
-              <button type="submit" className="primary-btn auth-submit" disabled={isAccountUpdating}>
-                {isAccountUpdating ? <><Loader2 size={16} className="spin-animation" /> Updating...</> : 'Update Account'}
-              </button>
-            </form>
+                  <div className="input-group">
+                    <label>New Username (Optional)</label>
+                    <div className="input-with-icon">
+                      <User size={16} className="input-icon" />
+                      <input
+                        type="text"
+                        placeholder={currentUser?.username}
+                        value={accountForm.username}
+                        onChange={(e) => setAccountForm({ ...accountForm, username: e.target.value })}
+                        style={{ paddingLeft: '2.5rem' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="input-group">
+                    <label>New Password (Optional)</label>
+                    <div className="password-input-wrapper input-with-icon">
+                      <Lock size={16} className="input-icon" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter new password"
+                        value={accountForm.password}
+                        onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}
+                        style={{ paddingLeft: '2.5rem' }}
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex="-1"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0 1.5rem 1.5rem 1.5rem' }}>
+                  <button type="submit" className="primary-btn auth-submit" disabled={isAccountUpdating} style={{ margin: 0 }}>
+                    {isAccountUpdating ? <><Loader2 size={16} className="spin-animation" /> Updating...</> : 'Update Account'}
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    style={{ color: 'var(--node-error)', borderColor: 'var(--node-error)', margin: 0 }}
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
